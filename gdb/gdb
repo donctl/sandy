@@ -1,0 +1,10 @@
+#!/bin/sh
+
+os=`uname`
+
+if [ $os = "Linux" ];
+then
+	./gdb/gdb-kali
+else
+	./gdb/gdb-osx
+fi

@@ -1,0 +1,9 @@
+The gdbserver was compiled to the ARM platform with the following:
+	./configure --host=arm-linux-androideabi --target=arm-linux-androideabi
+
+You should compile your gdb with the following:
+	./configure --target=arm-linux-androideabi
+
+It worked for me quite well on OSX 10.8 and on Kali.
+
+

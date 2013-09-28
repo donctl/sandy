@@ -1,0 +1,70 @@
+Warning!!!
+==========
+
+Uploading an own recovery image to a phone is a dangerous process.
+
+DO IT AT YOUR OWN RISK!
+
+Introduction
+============
+
+We need the mobicore environment in the recovery thus the best option is to use the S4s own recovery. We need the following:
+   - Download a samsung firmware. (http://www.sammobile.com/firmwares/)
+   - unmkbootimg (http://whiteboard.ping.se/Android/Unmkbootimg)
+   - mkbootimg (https://github.com/AndroidRoot/BootTools/)
+
+
+Step by step
+============
+
+
+1. Unzip and untar the downloaded recovery image:
+
+unzip I9505XXUBMEA_I9505VFGBMF2_AVF.zip
+tar xf I9505XXUBMEA_I9505VFGBMF2_I9505XXUBMEA_HOME.tar.md5
+
+2. Unpack the recovery.img
+
+unmkbootimg recovery.img
+
+From the output of the command please note the following:
+
+*** WARNING ****
+This image is built using NON-standard mkbootimg!
+OFF_RAMDISK_ADDR is 0x02000000
+Please modify mkbootimg.c using the above values to build your image.
+****************
+
+You will need OFF_RAMDISK_ADDR later.
+
+3. Unpack the ramdisk
+
+mkdir ramdisk
+cd ramdisk
+gunzip -c ../initramfs.cpio.gz | cpio -i
+
+4. Copy our init.rc and default.prop to the ramdisk folder
+
+cp $sandy_install/recovery/init.rc init.rc
+cp $sandy_install/recovery/default.prop default.prop
+
+5. Pack the ramdisk
+
+find . | cpio -o -H newc | gzip > ../newramdisk.cpio.gz
+
+6. Create the new recovery from the kernel and from the new ramdisk:
+
+cd ..
+BootTools-master/mkbootimg --kernel zImage --ramdisk newramdisk.cpio.gz --base 0x80200000 --cmdline 'console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3'  --ramdisk_offset 0x02000000 -o new_recovery.img
+
+--ramdisk_offset comes from OFF_RAMDISK_ADDR value form the unmkbootimg command's output.
+
+7. Use heimdal to upload it to the phone. Switch off your phone, then press the home, volume down and power button at once and follow the on screen instruction.
+
+heimdal flash --REVOCERY new_recovert.img
+
+
+The use of upper case --RECOVERY is important.
+
+
+

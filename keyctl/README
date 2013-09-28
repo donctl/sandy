@@ -1,0 +1,7 @@
+How to crosscompile keyctl utility:
+
+1. Download from http://people.redhat.com/~dhowells/keyutils/
+2. Setup your cross compile environment for androideabi
+3. make keyctl #Ignore the error messages
+4. arm-linux-androideabi-gcc --static --sysroot=[your ndk install path]/android-ndk-r8e/platforms/android-8/arch-arm/ -static -L. -g -Wall   -o keyctl keyctl.o keyutils.o
+
