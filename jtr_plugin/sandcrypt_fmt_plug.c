@@ -20,7 +20,7 @@
 
 #include <openssl/opensslv.h>
 #include <openssl/evp.h>
-#include <openssl/HMAC.h>
+#include <openssl/hmac.h>
 #if OPENSSL_VERSION_NUMBER >= 0x00908000
 
 #include <string.h>
