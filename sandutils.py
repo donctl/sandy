@@ -5,6 +5,7 @@ import string
 import printer
 import ConfigParser
 from pbkdf2 import PBKDF2
+from ErrorHandler import ADBError
 import Crypto.Cipher.AES
 import Crypto.Hash.HMAC
 import Crypto.Hash.SHA256
@@ -20,10 +21,15 @@ KEY_LEN_BYTES = 32
 IV_LEN_BYTES = 16
 
 def getphonewithos(adb):
-   phone=adb.shell_command("getprop ro.product.model").rstrip()
-   os=adb.shell_command("getprop ro.build.version.release").rstrip()
-   phonewithos="%s %s" % (phone, os)
-   return phonewithos
+    try:
+        adb.start_server()
+        phone=adb.shell_command("getprop ro.product.model").rstrip()
+        os=adb.shell_command("getprop ro.build.version.release").rstrip()
+        phonewithos="%s %s" % (phone, os)
+    except ADBError,e:
+        print "ADB Error occurred : %s\n" % e.value
+        sys.exit(-1)
+    return phonewithos
 
 def checkcryptostate(adb):
    state=adb.shell_command("getprop ro.crypto.state").rstrip()
@@ -37,12 +43,16 @@ def checkforsu(adb):
    return su
 
 def config2params(config,params,section):
-  items = config.items(section)
- 
-  for (key,value) in items:
-    if (key in params):
-    	params[key]["value"] = value
-  return
+    try:
+        items = config.items(section)
+        for (key,value) in items:
+            if (key in params):
+                params[key]["value"] = value
+                break
+    except ConfigParser.NoSectionError:
+        print "Config error, couldn't find section : %s\n" % section
+        sys.exit(-1)
+    return
 
 
 def decrypt_key(encrypted_key, salt, password):

@@ -7,14 +7,17 @@
 #The adb push writes the messages to the standard error, so we can check
 #wether the push was successfull or not.
 
+#Modified by bkerler. Added exception handling for adb shell errors
+
 try:
     import sys
+    from ErrorHandler import ADBError
     from os import popen3 as pipe
 except ImportError,e:
     # should never be reached
     print "[f] Required module missing. %s" % e.args[0]
     sys.exit(-1)
-
+    
 class ADB():
     
     PYADB_VERSION = "0.1.1"
@@ -296,6 +299,8 @@ class ADB():
         """
         self.__clean__()
         self.run_cmd('shell %s' % cmd)
+        if self.__error!=None: 
+            raise ADBError(self.__error)
 	return self.__output
 
     def listen_usb(self):

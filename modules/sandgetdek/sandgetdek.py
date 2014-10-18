@@ -63,25 +63,40 @@ class GetKey:
       self.dest_dir="/data/local/tmp"
 
       ps=self.adb.shell_command("su -c ps")
+      self.voldpid=None
       for process in ps.splitlines():
-	 if(process.rfind("vold") != -1 ):
-	    process=re.sub("\s+", ' ' , process)	
-	    self.voldpid=process.split(' ')[1]
-      
+          if(process.rfind("vold") != -1 ):
+              process=re.sub("\s+", ' ' , process)	
+              self.voldpid=process.split(' ')[1]
+              break
+          
+      if self.voldpid==None:
+          self.adb.shell_command("su -c start vold")
+          ps=self.adb.shell_command("su -c ps")
+          for process in ps.splitlines():
+              if(process.rfind("vold") != -1 ):
+                  process=re.sub("\s+", ' ' , process)    
+                  self.voldpid=process.split(' ')[1]
+                  break
+          if self.voldpid==None:
+              print "Couldn't find vold process. Try to start manually using \"adb shell su -c 'start vold'\""
+              return -1
+
       self.printer.print_debug("Found vold process id: %s!" % self.voldpid)
       memsegments=self.adb.shell_command("su -c cat /proc/%s/maps" % self.voldpid).splitlines()
       for segment in memsegments:
-	 if(re.match(".*w-p.*vold.*", segment)!=None):
-	    addresses=segment.split(" ")[0].split("-")
-	    self.datastart=addresses[0]
-	    self.dataend=addresses[1]
-	    self.numberofbytes=int(addresses[1],16)-int(addresses[0],16)
+          if(re.match(".*w-p.*vold.*", segment)!=None):
+                 addresses=segment.split(" ")[0].split("-")
+                 self.datastart=addresses[0]
+                 self.dataend=addresses[1]
+                 self.numberofbytes=int(addresses[1],16)-int(addresses[0],16)
+                 break
 
       self.printer.print_debug("The data segment addresses are: %s - %s" % (self.datastart, self.dataend))
       
       self.printer.print_info("Copy the memory dumper to %s." % (self.dest_dir))
  
-      push=self.adb.push_local_file("dump_android_memory/dump_android_memory","%s" % self.dest_dir)
+      push=self.adb.push_local_file("dump_android_memory/dump_android_memory","%s/dump_android_memory" % self.dest_dir)
       if(push.find("bytes")==-1):
 	 self.print_info_adb(push, False)
 	 return -1
@@ -95,7 +110,7 @@ class GetKey:
       if(dump):
 	 self.printer.print_info_adb(dump,False)
 	 return -1
-      self.printer.print_ok("Memory dumber - Done")
+      self.printer.print_ok("Memory dumper - Done")
 
       self.printer.print_info("Download the dump file")
       
@@ -108,7 +123,7 @@ class GetKey:
       self.print_info_adb(pull.rstrip("\n"))
       
       #Cleanup
-      self.printer.print_info("Cleaning up! Please check the %s folder. Unsuccessull cleanup weakens the security of the phone!!!!" % self.dest_dir)
+      self.printer.print_info("Cleaning up! Please check the %s folder. Unsuccessfull cleanup weakens the security of the phone!!!!" % self.dest_dir)
       out=self.adb.shell_command(su+"rm %s/dumpfile" % self.dest_dir)
       out=self.adb.shell_command(su+"rm %s/dump_android_memory" % self.dest_dir)
       self.printer.print_ok("Clean up - Done")

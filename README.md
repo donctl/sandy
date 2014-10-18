@@ -2,6 +2,7 @@ sandy
 =====
 Copyright 2013 Sandy
 Written by: Laszlo Toth, Ferenc Spala
+Modified by: Bjoern Kerler
 
 Description
 -----------
